@@ -17,6 +17,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.lazycolumn.ui.UserListScreen
 import com.example.lazycolumn.ui.theme.LazyColumnTheme
 import kotlinx.coroutines.launch
@@ -25,11 +30,27 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            LazyColumnTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    UserListScreen()
+            val navController = rememberNavController()
+            val viewModel: UserViewModel = viewModel()
+
+            NavHost(navController = navController, startDestination = Screen.UserList.route) {
+                composable(Screen.UserList.route) {
+                    val users by viewModel.users.collectAsState()
+                    UserListScreen(users = users) { userId ->
+                        navController.navigate(Screen.UserDetail.createRoute(userId))
+                    }
+                }
+
+                composable(
+                    route = Screen.UserDetail.route,
+                    arguments = listOf(navArgument("userId") { type = NavType.IntType })
+                ) { backStackEntry ->
+                    val userId = backStackEntry.arguments?.getInt("userId") ?: return@composable
+                    val user = viewModel.getUserById(userId)
+                    UserDetailScreen(user)
                 }
             }
         }
+
     }
 }

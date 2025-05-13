@@ -9,6 +9,7 @@ data class User(
     val phone: String,
     val website: String,
     val company: Company
+
 )
 
 data class Address(
